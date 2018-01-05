@@ -2,7 +2,7 @@
 
 This code calculates the alignment between two trajectories with x,y,z ccordinates, developed and tested under Ubuntu 14.04. A transformation matrix (rotation, scale, and trasnalation) and the alignment error is calculated.
 
-To know more about the alignment error, also known as the Absoulte Trajectory Error (ATE), see [1]. To know more about the transformation matrix, refer [2]
+To know more about the alignment error, also known as the Absoulte Trajectory Error (ATE), see [1]. To know more about the transformation matrix, see [2].
 
 ## Make and Run
 To compile:
