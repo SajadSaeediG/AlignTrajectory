@@ -5,12 +5,15 @@ This code calculates the alignment between two trajectories with x,y,z ccordinat
 To know more about the alignment error, also known as the Absoulte Trajectory Error (ATE), see [1]. To know more about the transformation matrix, refer [2]
 
 ## Make and Run
+To compile:
 
 * cd project_dir
 * mkdir build
 * cd build
 * cmake ..
 * make
+
+To run:
 
 * cd ../bin
 * ./align ../examples/cam0_gt.visim  ../examples/orbslam_traj.txt 
@@ -30,5 +33,6 @@ To know more about the alignment error, also known as the Absoulte Trajectory Er
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## License
-* [1] J. Sturm and N. Engelhard and F. Endres and W. Burgard and D. Cremers}, "A Benchmark for the Evaluation of RGB-D SLAM Systems", IROS 2012.
-* [2] B. Horn, "Closed-form solution of absolute orientation using unit quaternions", JOSA 1987
+[1] J. Sturm and N. Engelhard and F. Endres and W. Burgard and D. Cremers}, "A Benchmark for the Evaluation of RGB-D SLAM Systems", IROS 2012.
+
+[2] B. Horn, "Closed-form solution of absolute orientation using unit quaternions", JOSA 1987
