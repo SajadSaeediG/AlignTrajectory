@@ -17,7 +17,6 @@
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-//#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 
@@ -26,17 +25,14 @@
 #include <Viewer.h>
 #include <pangolin/pangolin.h>
 
-#include <signal.h>
 
 using namespace cv;
 using namespace std;
 
-bool readFiles(const std::string& strGT,
+bool readFiles(const std::string& strGroundTruth,
                const std::string& strEstimate,
                std::vector<Eigen::Vector3d>& vGroundTruth,
                std::vector<Eigen::Vector3d>& vEstimate);
-
-void sigint(int a){printf("---");}
 
 int main(int argc, char* argv[])
 {
@@ -49,14 +45,14 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    std::string strGT      = "../examples/cam0_gt.visim";
-    std::string strEstimate = "../examples/orbslam_traj.txt";
+    std::string strGroundTruth = std::string(argv[1]);
+    std::string strEstimate    = std::string(argv[2]);
 
     std::vector<Eigen::Vector3d> vGroundTruth;
     std::vector<Eigen::Vector3d> vEstimate;
     std::vector<Eigen::Vector3d> vTransformed;
 
-    readFiles(strGT, strEstimate, vGroundTruth, vEstimate);
+    readFiles(strGroundTruth, strEstimate, vGroundTruth, vEstimate);
 
     // calculte alignment
     float ate=0;
@@ -103,12 +99,12 @@ int main(int argc, char* argv[])
 }
 
 // read ground truth and estimate trajectory files. Modify this function to match you standard.
-bool readFiles(const std::string& strGT,
+bool readFiles(const std::string& strGroundTruth,
                const std::string& strEstimate,
                std::vector<Eigen::Vector3d>& vGroundTruth,
                std::vector<Eigen::Vector3d>& vEstimate)
 {
-    std::ifstream gtFile(strGT);
+    std::ifstream gtFile(strGroundTruth);
     std::ifstream estimateFile(strEstimate);
 
     std::string line;
