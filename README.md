@@ -21,7 +21,7 @@ To run:
 ### Prerequisites
 * CMake 2.8
 * Eigen3
-* Boost
+* Boost (sudo apt-get install libboost-all-dev)
 * Pangolin
 
 ## Authors

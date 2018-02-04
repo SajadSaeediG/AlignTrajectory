@@ -9,7 +9,7 @@ AlignTrajectory:: AlignTrajectory()
 
 }
 
-Eigen::Matrix4d AlignTrajectory::getAlignment(std::vector<Eigen::Vector3d> gt, std::vector<Eigen::Vector3d> es, float& ate)
+Eigen::Matrix4d AlignTrajectory::getAlignment(std::vector<Eigen::Matrix4d> gt, std::vector<Eigen::Matrix4d> es, float& ate)
 {
     std::cout << "Aligning traectories ..." << std::endl;
 
@@ -18,9 +18,9 @@ Eigen::Matrix4d AlignTrajectory::getAlignment(std::vector<Eigen::Vector3d> gt, s
     Eigen::MatrixXd gtMat(3,N);
     for (int i = 0; i < N; i++)
     {
-        gtMat(0,i) = gt.at(i)(0);
-        gtMat(1,i) = gt.at(i)(1);
-        gtMat(2,i) = gt.at(i)(2);
+        gtMat(0,i) = gt.at(i)(0,3);
+        gtMat(1,i) = gt.at(i)(1,3);
+        gtMat(2,i) = gt.at(i)(2,3);
     }
 
 
@@ -28,9 +28,9 @@ Eigen::Matrix4d AlignTrajectory::getAlignment(std::vector<Eigen::Vector3d> gt, s
     Eigen::MatrixXd esMat(3,N);
     for (int i = 0; i < M; i++)
     {
-        esMat(0,i) = es.at(i)(0);
-        esMat(1,i) = es.at(i)(1);
-        esMat(2,i) = es.at(i)(2);
+        esMat(0,i) = es.at(i)(0,3);
+        esMat(1,i) = es.at(i)(1,3);
+        esMat(2,i) = es.at(i)(2,3);
     }
 
 
@@ -65,9 +65,52 @@ Eigen::Matrix4d AlignTrajectory::getAlignment(std::vector<Eigen::Vector3d> gt, s
     return Mat;
 }
 
+std::vector<Eigen::Matrix4d> AlignTrajectory::getRPE(std::vector<Eigen::Matrix4d> gt, std::vector<Eigen::Matrix4d> es, int iDelta, double& rpe_rmse)
+{
+    std::vector<Eigen::Matrix4d>  rpe; 
+    rpe.clear();
+
+    Eigen::Matrix4d pose_gt_i;
+    Eigen::Matrix4d pose_gt_j;
+    Eigen::Matrix4d pose_gt_diff;
+
+    Eigen::Matrix4d pose_es_i;
+    Eigen::Matrix4d pose_es_j;
+    Eigen::Matrix4d pose_es_diff;
+
+    double norms = 0.0;
+    int n = gt.size();
+    int m = n-iDelta;
+
+
+    for (int i = 0; i < n-iDelta; i++)
+    {
+        int j = i + iDelta;
+        pose_gt_i    = gt.at(i);
+        pose_gt_j    = gt.at(j);
+        pose_gt_diff = pose_gt_i.inverse() * pose_gt_j;  
+
+        pose_es_i    = es.at(i);
+        pose_es_j    = es.at(j);
+        pose_es_diff = pose_es_i.inverse() * pose_es_j; 
+
+        Eigen::Matrix4d E;
+        E = pose_es_diff.inverse() * pose_gt_diff;
+        rpe.push_back(E); 
+
+        Eigen::Vector3d v;
+        v = E.block<3,1>(0,3);
+        double length = v.norm();
+        norms = norms + length*length;
+    }
+
+    rpe_rmse = sqrt(norms/m);
+    return rpe; 
+}
+/*
 bool AlignTrajectory::prepareData(std::vector<Eigen::Vector3d> gt, std::vector<Eigen::Vector3d> es, Eigen::MatrixXd& gtZeroMat, Eigen::MatrixXd& esZeroMat)
 {
-    // convert pose vectors to Eigen matrices
+//    // convert pose vectors to Eigen matrices
     int N = gt.size();
     Eigen::MatrixXd gtMat(3,N);
     for (int i = 0; i < N; i++)
@@ -101,7 +144,7 @@ bool AlignTrajectory::prepareData(std::vector<Eigen::Vector3d> gt, std::vector<E
 
     return true;
 }
-
+*/
 
 Eigen::MatrixXd AlignTrajectory::getRotation(Eigen::MatrixXd model, Eigen::MatrixXd data)
 {

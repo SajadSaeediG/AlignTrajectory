@@ -3,17 +3,28 @@
 
 using namespace std;
 
-Viewer::Viewer(std::vector<Eigen::Vector3d>* pGroundTruth, std::vector<Eigen::Vector3d>* pEstimate, std::vector<Eigen::Vector3d>* pTransformed):
+Viewer::Viewer(std::vector<Eigen::Matrix4d>* pGroundTruth, std::vector<Eigen::Matrix4d>* pEstimate, std::vector<Eigen::Matrix4d>* pTransformed):
     mbFinishRequested(false),
     mbFinished(true),
     mbStopped(true),
-    mbStopRequested(false),
-    mpvGroundTruth(pGroundTruth),
-    mpvEstimate(pEstimate),
-    mpvTransformed(pTransformed)
+    mbStopRequested(false)
 {
+    int iGTSize = pGroundTruth->size();
+    int iESSize = pEstimate->size();
+    int iTRSize = pTransformed->size(); 
 
+    mpvGroundTruth = new std::vector<Eigen::Vector3d>;
+    mpvEstimate = new std::vector<Eigen::Vector3d>;
+    mpvTransformed = new std::vector<Eigen::Vector3d>;
 
+    for(int i =0; i<iGTSize; i++)
+        mpvGroundTruth->push_back((pGroundTruth->at(i)).block<3,1>(0,3));
+
+    for(int i =0; i<iESSize; i++)
+        mpvEstimate->push_back((pEstimate->at(i)).block<3,1>(0,3));
+
+    for(int i =0; i<iTRSize; i++)
+        mpvTransformed->push_back((pTransformed->at(i)).block<3,1>(0,3));
 }
 
 void Viewer::Run()

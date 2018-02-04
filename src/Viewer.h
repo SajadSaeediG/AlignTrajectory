@@ -11,7 +11,7 @@
 class Viewer
 {
 public:
-    Viewer(std::vector<Eigen::Vector3d>* pGroundTruth, std::vector<Eigen::Vector3d>* pEstimate, std::vector<Eigen::Vector3d>* pTransformed);
+    Viewer(std::vector<Eigen::Matrix4d>* pGroundTruth, std::vector<Eigen::Matrix4d>* pEstimate, std::vector<Eigen::Matrix4d>* pTransformed);
 
     void Run();
 

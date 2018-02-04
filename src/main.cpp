@@ -31,8 +31,10 @@ using namespace std;
 
 bool readFiles(const std::string& strGroundTruth,
                const std::string& strEstimate,
-               std::vector<Eigen::Vector3d>& vGroundTruth,
-               std::vector<Eigen::Vector3d>& vEstimate);
+=               std::vector<Eigen::Matrix4d>& vGroundTruth,
+               std::vector<Eigen::Matrix4d>& vEstimate);
+
+Eigen::Matrix3d quat2mat(float qx, float qy, float qz, float qw);
 
 int main(int argc, char* argv[])
 {
@@ -47,32 +49,41 @@ int main(int argc, char* argv[])
 
     std::string strGroundTruth = std::string(argv[1]);
     std::string strEstimate    = std::string(argv[2]);
+    int iDriftRange  = 1;   //for RPE evaluation, number of frames to evaluate the drift over
 
-    std::vector<Eigen::Vector3d> vGroundTruth;
-    std::vector<Eigen::Vector3d> vEstimate;
-    std::vector<Eigen::Vector3d> vTransformed;
+    std::vector<Eigen::Matrix4d> vGroundTruth;
+    std::vector<Eigen::Matrix4d> vEstimate;
+    std::vector<Eigen::Matrix4d> vTransformed;
 
     readFiles(strGroundTruth, strEstimate, vGroundTruth, vEstimate);
 
-    // calculte alignment
+    // calculte ATE 
     float ate=0;
     AlignTrajectory align;
     Eigen::Matrix4d Mat = align.getAlignment(vEstimate, vGroundTruth, ate);
-
+    
     std::cout << "M is : " << std::endl << Mat << std::endl;
     std::cout << "ATE is: " << std::endl << ate << std::endl;
 
-    // generated the aligned trajectory
+    // generate the aligned trajectory
     Eigen::Matrix3d scaledRotation = Mat.block<3,3>(0,0);
     Eigen::Vector3d translation    = Mat.block<3,1>(0,3);
     vTransformed.clear();
 
     for(int i = 0 ; i < vEstimate.size(); i++)
-    {
-        Eigen::Vector3d p;
-        p = scaledRotation*vEstimate[i] + translation;
-        vTransformed.push_back(p);
-    }
+        vTransformed.push_back(Mat*vEstimate[i]);
+
+    // calculate RPE
+    int iDeltaFrames;
+    double  rpe_rmse;
+ 
+    std::vector<Eigen::Matrix4d>  rpe = align.getRPE(vEstimate, vGroundTruth, iDriftRange, rpe_rmse);
+
+    
+    if(!(rpe.size() == 0))
+        std::cout << "RPE is: " << std::endl << rpe_rmse << std::endl;
+    else
+        std::cout << "RPE is: " << std::endl << "N.A." << std::endl;
 
     // plot results
     Viewer* mpViewer;
@@ -98,11 +109,30 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+Eigen::Matrix3d quat2mat(float qx, float qy, float qz, float qw)
+{
+    Eigen::Matrix3d rot;
+    
+    rot(0,0) = 1.0;
+    rot(0,1) = 0.0;
+    rot(0,2) = 0.0;
+
+    rot(1,0) = 0.0;
+    rot(1,1) = 1.0;
+    rot(1,2) = 0.0;
+
+    rot(2,0) = 0.0;
+    rot(2,1) = 0.0;
+    rot(2,2) = 1.0;
+
+    return rot;
+}
+
 // read ground truth and estimate trajectory files. Modify this function to match you standard.
 bool readFiles(const std::string& strGroundTruth,
                const std::string& strEstimate,
-               std::vector<Eigen::Vector3d>& vGroundTruth,
-               std::vector<Eigen::Vector3d>& vEstimate)
+               std::vector<Eigen::Matrix4d>& vGroundTruth,
+               std::vector<Eigen::Matrix4d>& vEstimate)
 {
     std::ifstream gtFile(strGroundTruth);
     std::ifstream estimateFile(strEstimate);
@@ -125,9 +155,19 @@ bool readFiles(const std::string& strGroundTruth,
             float ty =  std::stof(match[4]);
             float tz =  std::stof(match[3]);
 
-            Eigen::Vector3d pose;
-            pose << tx, ty, tz;
-            vGroundTruth.push_back(pose);
+            float qx =  std::stof(match[6]);
+            float qy =  std::stof(match[7]);
+            float qz =  std::stof(match[8]);
+            float qw =  std::stof(match[5]);
+
+            Eigen::Matrix3d rot = quat2mat(qx, qy, qz, qw);
+
+            Eigen::Matrix4d pose6d;
+            pose6d.block<3,3>(0,0) = rot;
+            pose6d.block<3,1>(0,3) << tx, ty, tz;
+            pose6d.block<1,4>(3,0) << 0.0, 0.0, 0.0, 1.0;
+
+            vGroundTruth.push_back(pose6d);
          }
          else
          {
@@ -153,9 +193,19 @@ bool readFiles(const std::string& strGroundTruth,
             float ty =  std::stof(match[4]);
             float tz =  std::stof(match[3]);
 
-            Eigen::Vector3d pose;
-            pose << tx, ty, tz;
-            vEstimate.push_back(pose);
+            float qx =  std::stof(match[5]);
+            float qy =  std::stof(match[6]);
+            float qz =  std::stof(match[7]);
+            float qw =  std::stof(match[8]);
+
+            Eigen::Matrix3d rot = quat2mat(qx, qy, qz, qw);
+
+            Eigen::Matrix4d pose6d;
+            pose6d.block<3,3>(0,0) = rot;
+            pose6d.block<3,1>(0,3) << tx, ty, tz;
+            pose6d.block<1,4>(3,0) << 0.0, 0.0, 0.0, 1.0;
+
+            vEstimate.push_back(pose6d);
          }
          else
          {
