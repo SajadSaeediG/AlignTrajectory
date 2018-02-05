@@ -16,6 +16,8 @@ public:
 
     std::vector<Eigen::Matrix4d> calculateRPE(std::vector<Eigen::Matrix4d> gt, std::vector<Eigen::Matrix4d> es, int iDelta, double& rpe_rmse);
 
+    //bool prepareData(std::vector<Eigen::Vector3d> gt, std::vector<Eigen::Vector3d> es, Eigen::MatrixXd& gtZeroMat, Eigen::MatrixXd& esZeroMat);
+
 private:
     Eigen::MatrixXd ATERotation(Eigen::MatrixXd model, Eigen::MatrixXd data);
 

@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
     // calculte ATE 
     float ate=0;
     AlignTrajectory align;
-    Eigen::Matrix4d Mat = align.getAlignment(vEstimate, vGroundTruth, ate);
+    Eigen::Matrix4d Mat = align.calculateATE(vEstimate, vGroundTruth, ate);
     
     std::cout << "M is : " << std::endl << Mat << std::endl;
     std::cout << "ATE is: " << std::endl << ate << std::endl;
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
     int iDeltaFrames;
     double  rpe_rmse;
  
-    std::vector<Eigen::Matrix4d>  rpe = align.getRPE(vEstimate, vGroundTruth, iDriftRange, rpe_rmse);
+    std::vector<Eigen::Matrix4d>  rpe = align.calculateRPE(vEstimate, vGroundTruth, iDriftRange, rpe_rmse);
 
     
     if(!(rpe.size() == 0))
