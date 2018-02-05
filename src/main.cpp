@@ -31,7 +31,7 @@ using namespace std;
 
 bool readFiles(const std::string& strGroundTruth,
                const std::string& strEstimate,
-=               std::vector<Eigen::Matrix4d>& vGroundTruth,
+               std::vector<Eigen::Matrix4d>& vGroundTruth,
                std::vector<Eigen::Matrix4d>& vEstimate);
 
 Eigen::Matrix3d quat2mat(float qx, float qy, float qz, float qw);
