@@ -3,7 +3,8 @@
 
 using namespace std;
 
-Viewer::Viewer(std::vector<Eigen::Matrix4d>* pGroundTruth, std::vector<Eigen::Matrix4d>* pEstimate, std::vector<Eigen::Matrix4d>* pTransformed):
+//Viewer::Viewer(std::vector<Eigen::Matrix4d>* pGroundTruth, std::vector<Eigen::Matrix4d>* pEstimate, std::vector<Eigen::Matrix4d>* pTransformed):
+Viewer::Viewer(std::vector<std::pair<double, Eigen::Matrix4d>>* pGroundTruth,  std::vector<std::pair<double, Eigen::Matrix4d>>* pEstimate, std::vector<std::pair<double, Eigen::Matrix4d>>* pTransformed):
     mbFinishRequested(false),
     mbFinished(true),
     mbStopped(true),
@@ -18,13 +19,13 @@ Viewer::Viewer(std::vector<Eigen::Matrix4d>* pGroundTruth, std::vector<Eigen::Ma
     mpvTransformed = new std::vector<Eigen::Vector3d>;
 
     for(int i =0; i<iGTSize; i++)
-        mpvGroundTruth->push_back((pGroundTruth->at(i)).block<3,1>(0,3));
+        mpvGroundTruth->push_back((pGroundTruth->at(i)).second.block<3,1>(0,3));
 
     for(int i =0; i<iESSize; i++)
-        mpvEstimate->push_back((pEstimate->at(i)).block<3,1>(0,3));
+        mpvEstimate->push_back((pEstimate->at(i)).second.block<3,1>(0,3));
 
     for(int i =0; i<iTRSize; i++)
-        mpvTransformed->push_back((pTransformed->at(i)).block<3,1>(0,3));
+        mpvTransformed->push_back((pTransformed->at(i)).second.block<3,1>(0,3));
 }
 
 void Viewer::Run()
@@ -172,7 +173,7 @@ void Viewer::DrawTrajectory(std::vector<Eigen::Vector3d>* vpTrajectory,
     if(vpTrajectory->empty())
         return;
 
-    glPointSize(2.0);
+    glPointSize(3.0);
 
     if(bDrawPoint)
         glBegin(GL_POINTS);

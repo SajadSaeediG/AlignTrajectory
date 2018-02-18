@@ -11,7 +11,9 @@
 class Viewer
 {
 public:
-    Viewer(std::vector<Eigen::Matrix4d>* pGroundTruth, std::vector<Eigen::Matrix4d>* pEstimate, std::vector<Eigen::Matrix4d>* pTransformed);
+    //Viewer(std::vector<Eigen::Matrix4d>* pGroundTruth, std::vector<Eigen::Matrix4d>* pEstimate, std::vector<Eigen::Matrix4d>* pTransformed);
+    Viewer(std::vector<std::pair<double, Eigen::Matrix4d>>* pGroundTruth,  std::vector<std::pair<double, Eigen::Matrix4d>>* pEstimate, std::vector<std::pair<double, Eigen::Matrix4d>>* pTransformed);
+
 
     void Run();
 
