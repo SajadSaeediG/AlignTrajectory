@@ -103,7 +103,29 @@ int main(int argc, char* argv[])
     std::vector<Eigen::Matrix4d>  rpe = align.calculateRPE(vGroundTruthTimed, vEstimateTimed, iDriftRange, rpe_rmse, bDoAssociation);
     
     if(!(rpe.size() == 0))
+    {
         std::cout << "RPE is: " << std::endl << rpe_rmse << std::endl;
+	
+	ofstream f;
+	string filename;;
+	filename = "RGBDRPE.txt";
+	f.open(filename.c_str());
+	f << fixed;
+
+	for (int i = 0; i < rpe.size(); i++)
+	{
+		Eigen::Matrix4d poseEr = rpe[i];
+		f << setprecision(6) << i //tframe 
+	         //<< setprecision(7) 
+        	   << " "
+        	   << poseEr(0,3) << " "
+        	   << poseEr(1,3) << " "
+        	   << poseEr(2,3) << " "
+        	   //<< q.x() << " " << q.y() << " " << q.z() << " " << q.w() 
+		   << endl;
+	}
+	f.close();
+    }
     else
         std::cout << "RPE is: " << std::endl << "N.A." << std::endl;
 
