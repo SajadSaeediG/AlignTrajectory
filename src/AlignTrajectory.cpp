@@ -82,12 +82,58 @@ bool AlignTrajectory::Associate(const std::vector<std::pair<double, Eigen::Matri
         }
 
         //std::cout <<  index << " " << closest_gt_Index <<  " " << bestTimeDiff << std::endl;
-        //std::cout <<  es[index].first << " "  << gt[closest_gt_Index].first << std::endl;
+        std::cout <<  es[index].first << " "  << gt[closest_gt_Index].first << "---" << es[index].first - gt[closest_gt_Index].first << std::endl;
         //std::cout <<  t[index].second.S << " " << (t[index].second.Ns) << " " << gt[closest_gt_Index].second.S << " " << (gt[closest_gt_Index].second.Ns) << std::endl;
 
         Eigen::Matrix4d gtPose;
         gtPose = gt[closest_gt_Index].second; //<block-size>(start-i, start-j)
         vGroundTruth.push_back(gtPose);
+    }
+    
+    return (bool)(vGroundTruth.size() * vEstimate.size());
+}
+
+bool AlignTrajectory::Associate(const std::vector<std::pair<double, Eigen::Matrix4d>> & gt,
+                                const std::vector<std::pair<double, Eigen::Matrix4d>> & es,
+                                      std::vector<std::pair<double, Eigen::Matrix4d>> & vGroundTruth,
+                                      std::vector<std::pair<double, Eigen::Matrix4d>> & vEstimate)
+{
+    for(uint index = 0; index < es.size(); index++)  {
+
+        double time = es[index].first;
+        //double time = t[index].second.S + (t[index].second.Ns)*std::pow(10,-9);
+        //std::cout << t[index].second.S + (t[index].second.Ns)*std::pow(10,-9)  << std::endl;
+
+
+        std::pair<double, Eigen::Matrix4d> poseTimed;
+        poseTimed = std::make_pair(time, es[index].second);
+        vEstimate.push_back(poseTimed);
+
+        uint    closest_gt_Index = index;
+
+        //int precision = std::numeric_limits<double>::max_digits10;
+
+        double bestTimeDiff = 100000000000.0;
+        for(uint index2 = index; index2 < gt.size(); index2++)
+        {
+            //double gt_time = gt[index2].second.S + (gt[index2].second.Ns)*std::pow(10,-9);
+            double gt_time = gt[index2].first;
+            double timeDiff =  gt_time - time;
+            //std::cout <<  std::fixed << std::setprecision(precision) << "diff: " << fabs(timeDiff) << " " << gt_time  << " " << time << std::endl; 
+            if(fabs(timeDiff) < bestTimeDiff)
+            {
+                closest_gt_Index = index2;
+                bestTimeDiff = fabs(timeDiff);
+            }
+        }
+
+        //std::cout <<  index << " " << closest_gt_Index <<  " " << bestTimeDiff << std::endl;
+        //std::cout <<  es[index].first << " "  << gt[closest_gt_Index].first << "---" << es[index].first - gt[closest_gt_Index].first << std::endl;
+        //std::cout <<  t[index].second.S << " " << (t[index].second.Ns) << " " << gt[closest_gt_Index].second.S << " " << (gt[closest_gt_Index].second.Ns) << std::endl;
+
+        std::pair<double, Eigen::Matrix4d> gtPoseTimed;
+        gtPoseTimed = std::make_pair(gt[closest_gt_Index].first, gt[closest_gt_Index].second);
+        vGroundTruth.push_back(gtPoseTimed);
     }
     
     return (bool)(vGroundTruth.size() * vEstimate.size());
@@ -148,14 +194,22 @@ Eigen::Matrix4d AlignTrajectory::calculateATE(std::vector<Eigen::Matrix4d> gt, s
 }
 
 
-std::vector<Eigen::Matrix4d> AlignTrajectory::calculateRPE(std::vector<std::pair<double, Eigen::Matrix4d>> gt, std::vector<std::pair<double, Eigen::Matrix4d>> es, int iDelta, double& rpe_rmse, bool associate)
+std::vector<std::pair<double, Eigen::Matrix4d>> 
+AlignTrajectory::calculateRPE(std::vector<std::pair<double, Eigen::Matrix4d>> gt, 
+                              std::vector<std::pair<double, Eigen::Matrix4d>> es, 
+                              int iDelta, 
+                              double& rpe_rmse, 
+                              bool associate)
 {
-    std::vector<Eigen::Matrix4d> vGt;
-    std::vector<Eigen::Matrix4d> vEs;
+//    std::vector<Eigen::Matrix4d> vGt;
+//    std::vector<Eigen::Matrix4d> vEs;
+    std::vector<std::pair<double, Eigen::Matrix4d>> vGt;
+    std::vector<std::pair<double, Eigen::Matrix4d>> vEs;
 
     if(!associate)
     {
-        if (gt.size() != es.size())
+        std::cout << "\nRPE: no time associatian between estimates and groundtruth poses.\n" << std::endl;
+	if (gt.size() != es.size())
         {
             std::cout << "size of groundtruth poses: " << gt.size() << std::endl; 
             std::cout << "size of estimated poses: " << es.size() << std::endl; 
@@ -165,26 +219,94 @@ std::vector<Eigen::Matrix4d> AlignTrajectory::calculateRPE(std::vector<std::pair
 	else
         {
             for(std::vector<std::pair<double, Eigen::Matrix4d>>::iterator it = es.begin(); it != es.end(); ++it)
-                vEs.push_back((*it).second);
+            {	
+        	std::pair<double, Eigen::Matrix4d> poseTimed;
+	        poseTimed = std::make_pair((*it).first, (*it).second);
+        	vEs.push_back(poseTimed);
+
+                //vEs.push_back((*it).second);
+            }
 
             for(std::vector<std::pair<double, Eigen::Matrix4d>>::iterator it = gt.begin(); it != gt.end(); ++it)
-                vGt.push_back((*it).second);
+		//vGt.push_back((*it).second);
+            {
+        	std::pair<double, Eigen::Matrix4d> poseTimed;
+	        poseTimed = std::make_pair((*it).first, (*it).second);
+        	vGt.push_back(poseTimed);
+            }
 
             return AlignTrajectory::calculateRPE(vGt, vEs, iDelta, rpe_rmse);
         }
     }
     else
     {
+        std::cout << "\nRPE: using time to associate estimates and groundtruth ... \n" << std::endl;
         if(Associate(gt, es, vGt, vEs))
              return AlignTrajectory::calculateRPE(vGt, vEs, iDelta, rpe_rmse);
         else
         {
-            std::cerr << "asspciation failed!" << std::endl;
+            std::cerr << "association failed!" << std::endl;
             return {};
         }
     }
 
 }
+
+
+std::vector<std::pair<double, Eigen::Matrix4d>> 
+AlignTrajectory::calculateRPE(std::vector<std::pair<double, Eigen::Matrix4d>> gt, 
+                              std::vector<std::pair<double, Eigen::Matrix4d>> es, 
+                              int iDelta, 
+                              double& rpe_rmse)
+{
+//    std::vector<Eigen::Matrix4d>  rpe; 
+    std::vector<std::pair<double, Eigen::Matrix4d>> rpe;
+    rpe.clear();
+
+    Eigen::Matrix4d pose_gt_i;
+    Eigen::Matrix4d pose_gt_j;
+    Eigen::Matrix4d pose_gt_diff;
+
+    Eigen::Matrix4d pose_es_i;
+    Eigen::Matrix4d pose_es_j;
+    Eigen::Matrix4d pose_es_diff;
+
+    double norms = 0.0;
+    int n = gt.size();
+    int m = n-iDelta;
+
+
+    for (int i = 0; i < n-iDelta; i++)
+    {
+        int j = i + iDelta;
+        pose_gt_i    = gt[i].second;
+        pose_gt_j    = gt[j].second;
+        pose_gt_diff = pose_gt_i * pose_gt_j.inverse();  
+
+        pose_es_i    = gt[i].second;
+        pose_es_j    = gt[i].second;
+        pose_es_diff = pose_es_i * pose_es_j.inverse(); 
+
+        Eigen::Matrix4d E;
+        E = pose_es_diff * pose_gt_diff.inverse();
+        //rpe.push_back(E); 
+
+
+        std::pair<double, Eigen::Matrix4d> poseDiffTimed;
+        poseDiffTimed = std::make_pair(gt[j].first, E);
+        rpe.push_back(poseDiffTimed);
+
+        Eigen::Vector3d v;
+        v = E.block<3,1>(0,3);
+        double length = v.norm();
+        norms = norms + length*length;
+    }
+
+    rpe_rmse = sqrt(norms/m);
+    return rpe; 
+}
+
+/*
 std::vector<Eigen::Matrix4d> AlignTrajectory::calculateRPE(std::vector<Eigen::Matrix4d> gt, std::vector<Eigen::Matrix4d> es, int iDelta, double& rpe_rmse)
 {
     std::vector<Eigen::Matrix4d>  rpe; 
@@ -227,7 +349,7 @@ std::vector<Eigen::Matrix4d> AlignTrajectory::calculateRPE(std::vector<Eigen::Ma
     rpe_rmse = sqrt(norms/m);
     return rpe; 
 }
-
+*/
 
 Eigen::MatrixXd AlignTrajectory::ATERotation(Eigen::MatrixXd model, Eigen::MatrixXd data)
 {

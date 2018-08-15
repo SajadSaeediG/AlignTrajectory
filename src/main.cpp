@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
     int iDeltaFrames;
     double  rpe_rmse;
  
-    std::vector<Eigen::Matrix4d>  rpe = align.calculateRPE(vGroundTruthTimed, vEstimateTimed, iDriftRange, rpe_rmse, bDoAssociation);
+    std::vector<std::pair<double, Eigen::Matrix4d>>  rpe = align.calculateRPE(vGroundTruthTimed, vEstimateTimed, iDriftRange, rpe_rmse, bDoAssociation);
     
     if(!(rpe.size() == 0))
     {
@@ -114,9 +114,9 @@ int main(int argc, char* argv[])
 
 	for (int i = 0; i < rpe.size(); i++)
 	{
-		Eigen::Matrix4d poseEr = rpe[i];
-		f << setprecision(6) << i //tframe 
-	         //<< setprecision(7) 
+		Eigen::Matrix4d poseEr = rpe[i].second;
+		f << setprecision(6) <<  rpe[i].first
+	           << setprecision(7) 
         	   << " "
         	   << poseEr(0,3) << " "
         	   << poseEr(1,3) << " "
@@ -271,7 +271,7 @@ bool readFiles(const std::string& strGroundTruth,
 		 }
 		 else
 		 {
-		     std::cerr << "Unknown line:" << line << std::endl;
+		     std::cerr << "Unknown line in reading groundtruth poses: " << line << std::endl;
 		     return false;
 		 }
 	    }
@@ -316,7 +316,7 @@ bool readFiles(const std::string& strGroundTruth,
          }
          else
          {
-             std::cerr << "Unknown line:" << line << std::endl;
+             std::cerr << "Unknown line in reading estimated poses: " << line << std::endl;
              return false;
          }
     }
