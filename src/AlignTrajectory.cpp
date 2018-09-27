@@ -127,7 +127,7 @@ bool AlignTrajectory::Associate(const std::vector<std::pair<double, Eigen::Matri
             }
         }
 
-        //std::cout <<  index << " " << closest_gt_Index <<  " " << bestTimeDiff << std::endl;
+        std::cout <<  index << " " << closest_gt_Index <<  " " << bestTimeDiff << std::endl;
         //std::cout <<  es[index].first << " "  << gt[closest_gt_Index].first << "---" << es[index].first - gt[closest_gt_Index].first << std::endl;
         //std::cout <<  t[index].second.S << " " << (t[index].second.Ns) << " " << gt[closest_gt_Index].second.S << " " << (gt[closest_gt_Index].second.Ns) << std::endl;
 
@@ -279,13 +279,23 @@ AlignTrajectory::calculateRPE(std::vector<std::pair<double, Eigen::Matrix4d>> gt
     for (int i = 0; i < n-iDelta; i++)
     {
         int j = i + iDelta;
+        //std::cout << "(i,j) =  " << i << ", " << j << "\n" << std::endl;         
+
         pose_gt_i    = gt[i].second;
         pose_gt_j    = gt[j].second;
         pose_gt_diff = pose_gt_i * pose_gt_j.inverse();  
 
-        pose_es_i    = gt[i].second;
-        pose_es_j    = gt[i].second;
+	//std::cout << "gt: \n" << pose_gt_i << std::endl;
+	//std::cout << "gt: \n" << pose_gt_j << std::endl;
+        std::cout << "gt: \n" << pose_gt_diff << std::endl;
+
+        pose_es_i    = es[i].second;
+        pose_es_j    = es[j].second;
         pose_es_diff = pose_es_i * pose_es_j.inverse(); 
+
+        std::cout << "es: \n" << pose_es_diff << std::endl;
+	//std::cout << "gt: \n" << pose_gt_i << std::endl;
+	//std::cout << "gt: \n" << pose_gt_j << std::endl;
 
         Eigen::Matrix4d E;
         E = pose_es_diff * pose_gt_diff.inverse();
